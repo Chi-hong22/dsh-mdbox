@@ -80,7 +80,7 @@ dsh plugin --profile web remove @chi-hong22/dsh-mdbox
 缩进与反缩进（光标在列表行内按 `Tab` / `Shift+Tab`）：
 
 - `Tab`：整行缩进 2 空格；有序行编号重置为 `1.`（保留 `.` / `)` 风格），同层后续行自动递增；
-- `Shift+Tab`：删掉最多 2 空格缩进；有序行编号自动并入外层块继续（外层最大编号 +1）；
+- `Shift+Tab`：删掉最多 2 空格缩进；有序行编号自动并入外层块继续（外层最大编号 +1）；若被移出的是块首，其原缩进层剩余块从 `1.` 重新起号；
 - 无序行缩进/反缩进只动缩进，标记不变。
 
 ## Configuration
@@ -134,3 +134,6 @@ node .scratch/editor-fixes/verify.mjs
 许可证：MIT（见 LICENSE）。
 
 安全问题走 GitHub Issue；涉及未公开细节的不要写进公开 issue，先通过仓库所有者的 GitHub 主页私信联系。
+
+
+
