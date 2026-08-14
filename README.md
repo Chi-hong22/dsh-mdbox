@@ -2,6 +2,8 @@
 
 DeepSeek Harness (DSH) Web 输入框的 Markdown 编辑辅助插件。
 
+![DSH 输入框列表编辑演示](picture/image1.png)
+
 ## Overview
 
 DSH 的输入框是一个纯文本 textarea：写列表要自己敲标记，改编号要自己数。这个插件补上几个编辑器里常见的小动作：`Shift+Enter` 在列表行续行（有序列表自动递增），`Tab` 缩进列表项（有序行编号重置为 `1.`），`Shift+Tab` 反缩进（编号自动并入外层继续）。发出去的内容还是纯文本，`Enter` 还是发送，什么都不变。
