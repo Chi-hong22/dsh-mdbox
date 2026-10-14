@@ -6,17 +6,29 @@ DeepSeek Harness (DSH) Web 输入框的 Markdown 编辑辅助插件。
 
 ## Overview
 
-DSH 的输入框是一个纯文本 textarea：写列表要自己敲标记，改编号要自己数。这个插件补上几个编辑器里常见的小动作：`Shift+Enter` 在列表行续行（有序列表自动递增），`Tab` 缩进列表项（有序行编号重置为 `1.`），`Shift+Tab` 反缩进（编号自动并入外层继续）。发出去的内容还是纯文本，`Enter` 还是发送，什么都不变。
+DSH 的输入框是一个富文本编辑器（引用 chip 是原子节点）：写列表要自己敲标记，改编号要自己数。这个插件补上几个编辑器里常见的小动作：`Shift+Enter` 在列表行续行（有序列表自动递增），`Tab` 缩进列表项（有序行编号重置为 `1.`），`Shift+Tab` 反缩进（编号自动并入外层继续）。发出去的内容还是纯文本，`Enter` 还是发送，什么都不变。
 
 如果你经常在对话里写清单、步骤和带缩进的提纲，会用到它。
 
 ## Compatibility
 
-在 `@deepseek-ai/dsh-*` 0.1.0-rc.6（npx 部署快照）上验证过，最后验证日期 2026-08-13。
+| 插件版本 | DSH 版本 | 输入面 | 状态 |
+| --- | --- | --- | --- |
+| 0.2.x | `@deepseek-ai/dsh-*` 0.2.0-rc.2 | Lexical contenteditable | 当前，最后验证 2026-10-14 |
+| 0.1.x | `@deepseek-ai/dsh-*` 0.1.0-rc.6 | `<textarea>` | 已不再适配 |
 
-插件依赖输入框卡片上的 `data-composer-card` 属性定位输入框。DSH 大版本如果调整输入框 DOM，可能需要跟着改。
+DSH 0.2.0 把输入框从 `<textarea>` 换成了 Lexical 富文本编辑器（引用 chip 是原子 decorator 节点）。0.1.x 按 `TEXTAREA` 匹配输入框，在这套输入面上匹配不到任何元素，插件会**静默失效**（装在插件列表里但毫无反应）。0.2.0 起插件跟着换了对接面。
+
+插件只依赖两样对外可见的东西，不 import DSH 内部模块：
+
+- **DOM 锚点**：输入框根元素 `[data-composer-input]`（位于卡片 `[data-composer-card]` 内，`role="textbox"`、`aria-multiline="true"`）；
+- **编辑器实例**：输入框根元素上的 `__lexicalEditor`（Lexical 自己在 `contentEditable` 切换时挂载/删除）。
+
+草稿文本按 DSH 自己的 detect 投影读：顶层段落之间算一个 `\n`，原子节点（引用 chip 等）折叠成一个 `U+FFFC`。编辑只落到需要改的片段上——不重建段落、不切开 chip，每次按键是一次 `editor.update()`（单次撤销事务）。
 
 纯浏览器端插件，没有宿主半部，没有服务注入。插件不触碰 DSH 的 backdrop 渲染层（输入框可见文字由该层渲染），只做纯文本按键行为。
+
+DSH 大版本如果再次调整输入面，需要跟着改，改动集中在 `lib/client.js` 的「文档投影」和「接入」两段：锚点变了改 `composerInput()`，编辑器实例位置变了改 `getEditor()`，段落/原子节点模型变了改 `nodeText()` / `projectDraft()`。
 
 ## Install
 
@@ -96,7 +108,7 @@ dsh plugin --profile web remove @chi-hong22/dsh-mdbox
 
 ## Permissions & data
 
-不碰文件、网络、凭据和用户数据；没有宿主半部，不上传也不存储任何内容。只读当前会话输入框的草稿文本（浏览器内存内），只做按键行为，不修改输入框之外的任何 DOM。副作用都挂在 Cordis fiber 上，插件停用即还原。
+不碰文件、网络、凭据和用户数据；没有宿主半部，不上传也不存储任何内容。只读写当前会话输入框的草稿（浏览器内存内），只做按键行为，不修改输入框之外的任何 DOM。副作用都挂在 Cordis fiber 上，插件停用即还原。
 
 ## Troubleshooting
 
@@ -104,6 +116,7 @@ dsh plugin --profile web remove @chi-hong22/dsh-mdbox
 | --- | --- |
 | 重启后插件列表没有 dsh-mdbox | 检查 patch 行 `name` 与包 `name` 是否一致、`node_modules` 链接是否指向有效目录、YAML 缩进是否正确 |
 | 插件在列表但功能不生效 | 确认焦点在输入框；IME 组合输入期间插件会主动让位（先确认候选词上屏）；打开浏览器控制台看 `dsh-mdbox` 相关报错 |
+| 升级 DSH 后整个插件失效（毫无反应） | 多半是输入面对不上：在浏览器控制台执行 `document.querySelector("[data-composer-input]")`，返回 `null` 说明锚点变了，按上面 Compatibility 一节改 `lib/client.js` |
 | 想回滚 | 删除 patch 条目并重启；改动都在 profile 目录，插件没有持久化数据 |
 
 日志：插件不写日志文件；运行期错误在浏览器开发者工具 Console 里。
@@ -121,13 +134,17 @@ dsh plugin --profile web remove @chi-hong22/dsh-mdbox
     └── client.js    # 浏览器半部（__ModuleLoader__ 模块格式）
 ```
 
-手动验证清单：列表续行/递增、中间插入后自动重编号、空项退出、Tab 缩进（编号重置为 1.）/ Shift+Tab 反缩进（并入外层续号）、IME 组合输入让位、`Ctrl+Z` 撤销。
+`lib/client.js` 分四层，改行为时按层定位：常量 → 纯文本层（列表标记、缩进、重编号，只吃字符串）→ 文档投影层（Lexical 节点树 ↔ detect 文本坐标）→ 写入层（`editor.update()` 内落地 edits）→ 接入层（DOM 锚点、编辑器实例、键盘监听）。
 
-纯函数回归验证（Node，不需要浏览器）：
+手动验证清单（需要浏览器）：列表续行/递增、中间插入后自动重编号、空项退出、Tab 缩进（编号重置为 1.）/ Shift+Tab 反缩进（并入外层续号）、IME 组合输入让位、`Ctrl+Z` 撤销、行内引用 chip 不被编辑切开。
+
+纯函数回归验证（Node，不需要浏览器，覆盖纯文本层与文档投影层）：
 
 ```powershell
 node .scratch/editor-fixes/verify.mjs
 ```
+
+脚本直接读 `lib/client.js`、切出 factory 体求值，再对内部函数断言，所以不需要构建，也不需要测试框架。Lexical 一侧（`editor.update()` 与节点树改动）没有自动化测试，靠上面的浏览器清单人工验证。
 
 发布到 npm 时，把 `name` 换成你自己有权控制的 scope，不要占用 `@deepseek-ai/*` 官方保留命名空间；并在 package.json 补上 `repository` 字段。
 
