@@ -1,6 +1,6 @@
 {
   "name": "@chi-hong22/dsh-mdbox",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "DeepSeek Harness Web composer markdown editing helper: Shift+Enter list continuation with ordered-list auto-renumbering and Tab indent",
   "keywords": [
     "dsh",
