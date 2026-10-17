@@ -39,5 +39,5 @@ DSH 把输入面文档压成一维文本的口径：段落（顶层块）之间�
 _Avoid_: 纯文本、序列化文本、innerText
 
 **展开态**:
-输入卡的收起态高度由 DSH 的 `--dsh-composer-text-max-height` 决定；插件在卡片右上角挂一个按钮，展开时把 `[data-input-scroll]` 的高度改写为 `clamp(240px, 52vh, 560px)` 并在卡片上打 `data-mdbox-expanded`，再点一次删掉该属性即收回。按钮是卡片里由插件自管的子元素，不进 `[data-composer-overlay]`——那层里任何可见的绝对定位节点都会被菜单开态判定当成 slash 菜单，从而让出 Tab / Shift+Enter。
+输入卡的收起态高度由 DSH 的 `--dsh-composer-text-max-height` 决定；插件在卡片右上角挂一个圆形按钮，展开时在卡片上打 `data-mdbox-expanded`，`[data-input-scroll]` 的 `min-height`/`max-height` 一起取卡片上的 `--mdbox-expand-height`（缺省回退 `clamp(240px, 52vh, 560px)`），再点一次删掉属性即收回。高度过渡落在 `min-height`/`max-height`（240ms）——`height` 是 auto，不可插值。展开后卡片上沿多一条拖拽条（`[data-mdbox-resize]`），拖动只写 `--mdbox-expand-height`（120px 到视口 85%），双击复位。按钮和拖拽条都是卡片里由插件自管的子元素，不进 `[data-composer-overlay]`——那层里任何可见的绝对定位节点都会被菜单开态判定当成 slash 菜单，从而让出 Tab / Shift+Enter。
 _Avoid_: 全屏输入框、弹层编辑器
