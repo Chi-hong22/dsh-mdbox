@@ -29,3 +29,7 @@ _Avoid_: 高亮层、镜像层
 **composer（输入卡）**:
 DSH Web 输入框整体（`data-composer-card` 卡片），内含背板、textarea、镜像层与工具行；插件通过卡片上的 data 属性定位输入框。
 _Avoid_: 输入框（特指 textarea 时）
+
+**展开态**:
+输入卡的收起态高度由 DSH 的 `--dsh-composer-text-max-height` 决定；插件在卡片右上角挂一个按钮，展开时把 `[data-input-scroll]` 的高度改写为 `clamp(240px, 52vh, 560px)` 并在卡片上打 `data-mdbox-expanded`，再点一次删掉该属性即收回。按钮是卡片里由插件自管的子节点，不进 `[data-composer-overlay]`——那层里的绝对定位浮层会被菜单开态判定误认为 slash 菜单。
+_Avoid_: 全屏输入框、弹层编辑器
